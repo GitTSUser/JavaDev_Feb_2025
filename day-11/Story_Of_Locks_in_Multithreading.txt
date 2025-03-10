@@ -1,0 +1,121 @@
+Multithreading using Locks:-
+============================
+
+Locks are often used in multithreading to manage access to shared resources and prevent concurrency issues such as race conditions. Here's an example of an app that uses locks in Java for thread synchronization:
+
+Example 1: Bank Account Example Using `ReentrantLock`
+
+In this example, we simulate a bank account system where multiple threads may access and modify the account balance concurrently. A `ReentrantLock` is used to ensure that only one thread can modify the balance at a time, preventing race conditions.
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class BankAccount {
+    private double balance;
+    private final Lock lock = new ReentrantLock(); // Lock to synchronize access to balance
+
+    public BankAccount(double balance) {
+        this.balance = balance;
+    }
+
+    public void deposit(double amount) {
+        lock.lock(); // Acquire the lock
+        try {
+            balance += amount;
+        } finally {
+            lock.unlock(); // Release the lock
+        }
+    }
+
+    public void withdraw(double amount) {
+        lock.lock(); // Acquire the lock
+        try {
+            if (balance >= amount) {
+                balance -= amount;
+            } else {
+                System.out.println("Insufficient funds.");
+            }
+        } finally {
+            lock.unlock(); // Release the lock
+        }
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+}
+
+public class BankApp {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount(1000);
+
+        // Simulating multiple threads accessing the bank account
+        Thread t1 = new Thread(() -> account.deposit(500));
+        Thread t2 = new Thread(() -> account.withdraw(200));
+        Thread t3 = new Thread(() -> account.withdraw(100));
+
+        t1.start();
+        t2.start();
+        t3.start();
+
+        try {
+            t1.join();
+            t2.join();
+            t3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Final Balance: " + account.getBalance());
+    }
+}
+
+ Explanation:
+- We used a `ReentrantLock` to ensure that only one thread at a time can access the `deposit` or `withdraw` method of the `BankAccount` class.
+- This approach prevents multiple threads from changing the account balance simultaneously, which could lead to incorrect results.
+
+
+Examples of Locks in Multithreading
+
+1. Database Access
+
+In a multi-user database system, several clients might try to modify or read data from the same table at the same time. Locks are used to prevent multiple clients from updating the same row simultaneously, which could lead to data corruption or inconsistencies.
+
+Example: In an online banking system, if two users are transferring money from the same account simultaneously, a lock will be used to ensure that only one transfer occurs at a time, preventing incorrect balances or double withdrawals.
+
+
+2. Printing System
+===================
+Consider a shared printing resource in a workplace. Multiple users might send print jobs to the same printer simultaneously. A lock ensures that only one print job is processed at a time.
+
+Example: In a print spooler system, a lock is used so that multiple print jobs are processed in a queue, one after another. Without locks, multiple print jobs could overlap, causing misprints.
+
+3.File System Access
+====================
+When multiple threads (or processes) try to write to the same file, locks prevent race conditions where two processes might try to write at the same time, corrupting the file.
+
+Example:A file-based logging system might lock the log file while writing log entries. If the file was accessed by multiple threads without synchronization, log entries could get interspersed, making the log unreadable.
+
+4.Ticket Booking System
+=======================
+In an online ticket booking system, multiple customers may attempt to book the last few available seats simultaneously. A lock is used to ensure that only one customer is able to book a seat at a time, preventing double-booking.
+
+Example: If two users try to book the last seat on a flight at the same time, a lock will ensure that only one user can complete the booking, and the other will receive a message stating that the seat is no longer available.
+
+5. Order Processing System
+===========================
+
+In an e-commerce platform, multiple threads could be processing orders at the same time. A lock ensures that shared resources like inventory stock are updated correctly without conflicts.
+
+Example: When a customer orders a product, the system must check inventory, update stock levels, and generate an invoice. Locks ensure that the stock quantity is updated correctly when multiple customers are ordering the same item.
+
+Summary of Lock Types in Java:-
+=============================
+
+1. ReentrantLock: A lock that allows the same thread to acquire the lock multiple times without causing a deadlock.
+
+2. ReadWriteLock: A type of lock that allows multiple readers to access a resource simultaneously but only one writer.
+
+3. Synchronized blocks/methods: Java's built-in locking mechanism that synchronizes methods or blocks of code to allow only one thread to execute them at a time.
+
+Locks help ensure data consistency and thread safety in multithreaded applications, preventing issues like race conditions and deadlocks.
